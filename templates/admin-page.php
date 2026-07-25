@@ -379,7 +379,7 @@ $total_pages = ceil($total_logs / $per_page);
                                 <?php if ($selected_module === 'all'): ?>
                                 <td>
                                     <span style="font-size: 11px; background: #f0f0f1; padding: 3px 6px; border-radius: 3px; display: inline-block;">
-                                        <?php echo esc_html($log['module_name']); ?>
+                                        <?php echo esc_html($log['module_name'] ?? 'unknown'); ?>
                                     </span>
                                 </td>
                                 <?php endif; ?>
