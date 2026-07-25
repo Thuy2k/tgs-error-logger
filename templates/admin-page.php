@@ -23,6 +23,10 @@ $selected_level = isset($_GET['level']) ? sanitize_text_field($_GET['level']) : 
 $search_term = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
 $security_only = isset($_GET['security_only']) && $_GET['security_only'] === '1';
 
+// Pagination
+$page = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
+$per_page = 50; // 50 logs per page
+
 // Build filters
 $filters = [];
 if ($selected_level) {
@@ -39,6 +43,7 @@ if ($security_only) {
 $logs = [];
 $available_files = [];
 $stats = null;
+$total_logs = 0;
 
 if ($selected_blog) {
     if ($selected_module === 'all') {
@@ -57,15 +62,29 @@ if ($selected_blog) {
             return $b['unix_timestamp'] - $a['unix_timestamp'];
         });
 
+        // Total before pagination
+        $total_logs = count($logs);
+
+        // Apply pagination
+        $offset = ($page - 1) * $per_page;
+        $logs = array_slice($logs, $offset, $per_page);
+
         // Build combined stats
         $stats = [
-            'total' => count($logs),
+            'total' => $total_logs,
             'by_level' => [],
             'security_issues' => 0,
             'by_file' => []
         ];
 
-        foreach ($logs as $log) {
+        // Get all logs again for stats (without pagination)
+        $all_logs_for_stats = [];
+        foreach (array_keys($modules) as $module_key) {
+            $module_logs = $reader->read_logs($selected_blog, $module_key, $selected_date, $filters);
+            $all_logs_for_stats = array_merge($all_logs_for_stats, $module_logs);
+        }
+
+        foreach ($all_logs_for_stats as $log) {
             // Count by level
             if (!isset($stats['by_level'][$log['level']])) {
                 $stats['by_level'][$log['level']] = 0;
@@ -92,11 +111,20 @@ if ($selected_blog) {
 
     } else {
         // Single module
-        $logs = $reader->read_logs($selected_blog, $selected_module, $selected_date, $filters);
+        $all_logs = $reader->read_logs($selected_blog, $selected_module, $selected_date, $filters);
+        $total_logs = count($all_logs);
+
+        // Apply pagination
+        $offset = ($page - 1) * $per_page;
+        $logs = array_slice($all_logs, $offset, $per_page);
+
         $available_files = $reader->get_available_log_files($selected_blog, $selected_module);
         $stats = $reader->get_summary_stats($selected_blog, $selected_module, $selected_date);
     }
 }
+
+// Calculate total pages
+$total_pages = ceil($total_logs / $per_page);
 
 ?>
 
@@ -287,10 +315,22 @@ if ($selected_blog) {
 
     <!-- Error Logs Table -->
     <div style="background: #fff; border: 1px solid #ccd0d4; border-radius: 4px; box-shadow: 0 1px 1px rgba(0,0,0,.04);">
-        <div style="padding: 15px; border-bottom: 1px solid #ccd0d4;">
+        <div style="padding: 15px; border-bottom: 1px solid #ccd0d4; display: flex; justify-content: space-between; align-items: center;">
             <strong style="font-size: 14px;">
-                Danh sách lỗi: <?php echo number_format(count($logs)); ?> kết quả
+                Danh sách lỗi: <?php echo number_format($total_logs); ?> kết quả
+                <?php if ($total_pages > 1): ?>
+                    <span style="color: #646970; font-weight: normal;">
+                        (Trang <?php echo $page; ?>/<?php echo $total_pages; ?>)
+                    </span>
+                <?php endif; ?>
             </strong>
+
+            <?php if ($total_logs > $per_page): ?>
+                <div style="font-size: 13px; color: #646970;">
+                    Hiển thị <?php echo number_format($offset + 1); ?>-<?php echo number_format(min($offset + $per_page, $total_logs)); ?>
+                    trong <?php echo number_format($total_logs); ?> logs
+                </div>
+            <?php endif; ?>
         </div>
 
         <div style="overflow-x: auto;">
@@ -389,6 +429,52 @@ if ($selected_blog) {
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination -->
+        <?php if ($total_pages > 1): ?>
+            <div style="padding: 15px; border-top: 1px solid #ccd0d4; display: flex; justify-content: space-between; align-items: center;">
+                <div style="color: #646970; font-size: 13px;">
+                    Trang <?php echo $page; ?> / <?php echo $total_pages; ?>
+                </div>
+
+                <div class="tablenav">
+                    <div class="tablenav-pages">
+                        <?php
+                        $base_url = remove_query_arg('paged');
+
+                        // First page
+                        if ($page > 1) {
+                            echo '<a class="button" href="' . esc_url(add_query_arg('paged', 1, $base_url)) . '">« Đầu</a> ';
+                            echo '<a class="button" href="' . esc_url(add_query_arg('paged', $page - 1, $base_url)) . '">‹ Trước</a> ';
+                        }
+
+                        // Page numbers
+                        $range = 2; // Show 2 pages before and after current
+                        $start = max(1, $page - $range);
+                        $end = min($total_pages, $page + $range);
+
+                        for ($i = $start; $i <= $end; $i++) {
+                            if ($i == $page) {
+                                echo '<span class="button button-primary" style="margin: 0 2px;">' . $i . '</span> ';
+                            } else {
+                                echo '<a class="button" href="' . esc_url(add_query_arg('paged', $i, $base_url)) . '" style="margin: 0 2px;">' . $i . '</a> ';
+                            }
+                        }
+
+                        // Last page
+                        if ($page < $total_pages) {
+                            echo '<a class="button" href="' . esc_url(add_query_arg('paged', $page + 1, $base_url)) . '">Sau ›</a> ';
+                            echo '<a class="button" href="' . esc_url(add_query_arg('paged', $total_pages, $base_url)) . '">Cuối »</a>';
+                        }
+                        ?>
+                    </div>
+                </div>
+
+                <div style="color: #646970; font-size: 13px;">
+                    <?php echo number_format($offset + 1); ?>-<?php echo number_format(min($offset + $per_page, $total_logs)); ?> / <?php echo number_format($total_logs); ?>
+                </div>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -453,5 +539,20 @@ details summary {
 
 details[open] summary {
     margin-bottom: 5px;
+}
+
+.tablenav {
+    display: inline-block;
+}
+
+.tablenav-pages .button {
+    margin: 0 2px;
+    min-width: 32px;
+    text-align: center;
+}
+
+.tablenav-pages .button-primary {
+    cursor: default;
+    pointer-events: none;
 }
 </style>

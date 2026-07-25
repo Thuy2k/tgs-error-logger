@@ -4,7 +4,7 @@ Hệ thống log lỗi thông minh cho WordPress Multisite, chia theo module và
 
 ## Tính năng
 
-✅ **Chia log theo module**: pos, inventory, sync, api, security, database, payment, auth, system  
+✅ **Chia log theo module**: pos, shop, selling_policy, purchase, sync, api, security, database, payment, auth, system  
 ✅ **Log theo ngày**: Mỗi ngày một file JSONL, dễ quản lý  
 ✅ **Auto-detect lỗi bảo mật**: Tự động phát hiện SQL injection, XSS, path traversal...  
 ✅ **Multisite support**: Hỗ trợ 650+ cửa hàng  
@@ -12,6 +12,7 @@ Hệ thống log lỗi thông minh cho WordPress Multisite, chia theo module và
 ✅ **UI admin đẹp**: Xem, filter, tìm kiếm, download logs  
 ✅ **Performance tốt**: File-based, không làm chậm database  
 ✅ **Dễ mở rộng**: Thêm module mới chỉ cần thêm vào array  
+✅ **Tích hợp sẵn**: Hook tự động vào 4 plugin chính (pos, shop, selling_policy, purchase)  
 
 ## Cấu trúc lưu log
 
@@ -21,7 +22,13 @@ wp-content/uploads/sites/{blog_id}/tgs_logs/
 │   ├── 2026-07-25.jsonl
 │   ├── 2026-07-24.jsonl
 │   └── ...
-├── inventory/
+├── shop/
+│   ├── 2026-07-25.jsonl
+│   └── ...
+├── selling_policy/
+│   ├── 2026-07-25.jsonl
+│   └── ...
+├── purchase/
 │   ├── 2026-07-25.jsonl
 │   └── ...
 ├── security/
@@ -79,7 +86,9 @@ tgs_log_security('Possible SQL injection attempt', [
 
 // Log theo module cụ thể
 tgs_log_pos_error('POS session expired');
-tgs_log_inventory_error('Stock sync failed');
+tgs_log_shop_error('Product sync failed');
+tgs_log_selling_policy_error('Policy validation failed');
+tgs_log_purchase_error('Purchase order save failed');
 tgs_log_sync_error('HT Soft API timeout');
 tgs_log_api_error('REST API rate limit exceeded');
 tgs_log_database_error('Query timeout', ['query' => $query]);
@@ -158,8 +167,10 @@ $recent = $reader->get_recent_errors($blog_id, 50, 'warning');
 
 | Module | Mô tả |
 |--------|-------|
-| `pos` | Plugin tgs_pos |
-| `inventory` | Quản lý kho |
+| `pos` | POS System |
+| `shop` | Quản trị hệ thống (TGS Shop Management) |
+| `selling_policy` | Chính sách bán hàng |
+| `purchase` | Quản lý mua hàng |
 | `sync` | Đồng bộ (HT Soft, APIs) |
 | `api` | REST API / AJAX |
 | `security` | Lỗi bảo mật |
@@ -175,10 +186,21 @@ Edit file `includes/class-tgs-error-logger.php`:
 ```php
 private static $modules = [
     'pos' => 'POS System',
-    'inventory' => 'Quản lý kho',
+    'shop' => 'Quản trị hệ thống (TGS Shop Management)',
+    'selling_policy' => 'Chính sách bán hàng',
+    'purchase' => 'Quản lý mua hàng',
     // ... existing modules
     'custom_module' => 'Module mới của bạn', // <- Thêm dòng này
 ];
+```
+
+Sau đó tạo helper function trong `includes/helpers.php`:
+
+```php
+function tgs_log_custom_module_error($message, $context = [])
+{
+    return TGS_Error_Logger_Handler::log_error('custom_module', $message, $context, 'error');
+}
 ```
 
 ## Format log entry (JSONL)
