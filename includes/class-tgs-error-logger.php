@@ -24,14 +24,16 @@ class TGS_Error_Logger
      */
     private static $modules = [
         'pos' => 'POS System',
-        'inventory' => 'Quản lý kho',
+        'shop' => 'Quản trị hệ thống (TGS Shop Management)',
+        'selling_policy' => 'Chính sách bán hàng',
+        'purchase' => 'Quản lý mua hàng',
         'sync' => 'Đồng bộ dữ liệu',
         'api' => 'REST API / AJAX',
         'security' => 'Bảo mật',
         'database' => 'Cơ sở dữ liệu',
         'payment' => 'Thanh toán',
         'auth' => 'Xác thực',
-        'system' => 'Hệ thống',
+        'system' => 'Hệ thống chung',
     ];
 
     /**
@@ -298,12 +300,21 @@ class TGS_Error_Logger
      */
     public static function detect_module_from_path($file_path)
     {
+        // Plugin detection
         if (stripos($file_path, 'tgs_pos') !== false || stripos($file_path, 'tgs-pos') !== false) {
             return 'pos';
         }
-        if (stripos($file_path, 'inventory') !== false || stripos($file_path, 'stock') !== false) {
-            return 'inventory';
+        if (stripos($file_path, 'tgs_shop_management') !== false || stripos($file_path, 'tgs-shop-management') !== false) {
+            return 'shop';
         }
+        if (stripos($file_path, 'tgs_selling_policy') !== false || stripos($file_path, 'tgs-selling-policy') !== false) {
+            return 'selling_policy';
+        }
+        if (stripos($file_path, 'tgs_purchase_management') !== false || stripos($file_path, 'tgs-purchase-management') !== false) {
+            return 'purchase';
+        }
+
+        // Feature detection
         if (stripos($file_path, 'sync') !== false || stripos($file_path, 'htsoft') !== false) {
             return 'sync';
         }

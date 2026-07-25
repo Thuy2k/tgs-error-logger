@@ -126,18 +126,6 @@ function tgs_log_pos_error($message, $context = [])
 }
 
 /**
- * Log inventory error
- *
- * @param string $message Inventory error message
- * @param array $context Additional context
- * @return bool
- */
-function tgs_log_inventory_error($message, $context = [])
-{
-    return TGS_Error_Logger_Handler::log_error('inventory', $message, $context, 'error');
-}
-
-/**
  * Log sync error
  *
  * @param string $message Sync error message
@@ -199,4 +187,40 @@ function tgs_error_logger()
 function tgs_error_logger_reader()
 {
     return TGS_Error_Logger_Reader::instance();
+}
+
+/**
+ * Log shop management error
+ *
+ * @param string $message Error message
+ * @param array $context Additional context
+ * @return bool
+ */
+function tgs_log_shop_error($message, $context = [])
+{
+    return TGS_Error_Logger_Handler::log_error('shop', $message, $context, 'error');
+}
+
+/**
+ * Log selling policy error
+ *
+ * @param string $message Error message
+ * @param array $context Additional context
+ * @return bool
+ */
+function tgs_log_selling_policy_error($message, $context = [])
+{
+    return TGS_Error_Logger_Handler::log_error('selling_policy', $message, $context, 'error');
+}
+
+/**
+ * Log purchase management error
+ *
+ * @param string $message Error message
+ * @param array $context Additional context
+ * @return bool
+ */
+function tgs_log_purchase_error($message, $context = [])
+{
+    return TGS_Error_Logger_Handler::log_error('purchase', $message, $context, 'error');
 }

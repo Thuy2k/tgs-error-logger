@@ -40,10 +40,62 @@ $logs = [];
 $available_files = [];
 $stats = null;
 
-if ($selected_blog && $selected_module) {
-    $logs = $reader->read_logs($selected_blog, $selected_module, $selected_date, $filters);
-    $available_files = $reader->get_available_log_files($selected_blog, $selected_module);
-    $stats = $reader->get_summary_stats($selected_blog, $selected_module, $selected_date);
+if ($selected_blog) {
+    if ($selected_module === 'all') {
+        // Get logs from all modules
+        foreach (array_keys($modules) as $module_key) {
+            $module_logs = $reader->read_logs($selected_blog, $module_key, $selected_date, $filters);
+            // Add module info to each log
+            foreach ($module_logs as &$log) {
+                $log['module_name'] = $modules[$module_key];
+            }
+            $logs = array_merge($logs, $module_logs);
+        }
+
+        // Sort by timestamp descending
+        usort($logs, function($a, $b) {
+            return $b['unix_timestamp'] - $a['unix_timestamp'];
+        });
+
+        // Build combined stats
+        $stats = [
+            'total' => count($logs),
+            'by_level' => [],
+            'security_issues' => 0,
+            'by_file' => []
+        ];
+
+        foreach ($logs as $log) {
+            // Count by level
+            if (!isset($stats['by_level'][$log['level']])) {
+                $stats['by_level'][$log['level']] = 0;
+            }
+            $stats['by_level'][$log['level']]++;
+
+            // Count security issues
+            if (!empty($log['security_issue'])) {
+                $stats['security_issues']++;
+            }
+
+            // Count by file
+            if (!empty($log['file'])) {
+                $file = basename($log['file']);
+                if (!isset($stats['by_file'][$file])) {
+                    $stats['by_file'][$file] = 0;
+                }
+                $stats['by_file'][$file]++;
+            }
+        }
+
+        // Sort by_file by count
+        arsort($stats['by_file']);
+
+    } else {
+        // Single module
+        $logs = $reader->read_logs($selected_blog, $selected_module, $selected_date, $filters);
+        $available_files = $reader->get_available_log_files($selected_blog, $selected_module);
+        $stats = $reader->get_summary_stats($selected_blog, $selected_module, $selected_date);
+    }
 }
 
 ?>
@@ -85,6 +137,7 @@ if ($selected_blog && $selected_module) {
                         <span class="dashicons dashicons-admin-plugins"></span> Module:
                     </label>
                     <select name="module" style="width: 100%;">
+                        <option value="all" <?php selected($selected_module, 'all'); ?>>-- Tất cả --</option>
                         <?php foreach ($modules as $key => $label): ?>
                             <option value="<?php echo esc_attr($key); ?>" <?php selected($selected_module, $key); ?>>
                                 <?php echo esc_html($label); ?>
@@ -152,7 +205,7 @@ if ($selected_blog && $selected_module) {
                     <strong style="color: #d63638;">Chỉ lỗi bảo mật</strong>
                 </label>
 
-                <?php if ($selected_blog && $selected_module && $selected_date): ?>
+                <?php if ($selected_blog && $selected_module && $selected_module !== 'all' && $selected_date): ?>
                     <a href="<?php echo wp_nonce_url(admin_url('admin-ajax.php?action=tgs_error_logger_download_log&blog_id=' . $selected_blog . '&module=' . $selected_module . '&date=' . $selected_date), 'tgs_error_logger_nonce', 'nonce'); ?>"
                        class="button button-secondary"
                        target="_blank"
@@ -246,6 +299,9 @@ if ($selected_blog && $selected_module) {
                     <tr>
                         <th style="width: 100px;">Thời gian</th>
                         <th style="width: 80px;">Level</th>
+                        <?php if ($selected_module === 'all'): ?>
+                        <th style="width: 150px;">Module</th>
+                        <?php endif; ?>
                         <th style="width: 120px;">User</th>
                         <th>Message</th>
                         <th style="width: 200px;">File/Line</th>
@@ -255,7 +311,7 @@ if ($selected_blog && $selected_module) {
                 <tbody>
                     <?php if (empty($logs)): ?>
                         <tr>
-                            <td colspan="6" style="text-align: center; padding: 60px;">
+                            <td colspan="<?php echo $selected_module === 'all' ? '7' : '6'; ?>" style="text-align: center; padding: 60px;">
                                 <span class="dashicons dashicons-yes-alt" style="font-size: 48px; color: #46b450;"></span>
                                 <p style="margin: 10px 0 0; color: #787c82; font-size: 14px;">
                                     ✅ Không có lỗi nào - Hệ thống hoạt động tốt!
@@ -280,6 +336,13 @@ if ($selected_blog && $selected_module) {
                                         </div>
                                     <?php endif; ?>
                                 </td>
+                                <?php if ($selected_module === 'all'): ?>
+                                <td>
+                                    <span style="font-size: 11px; background: #f0f0f1; padding: 3px 6px; border-radius: 3px; display: inline-block;">
+                                        <?php echo esc_html($log['module_name']); ?>
+                                    </span>
+                                </td>
+                                <?php endif; ?>
                                 <td>
                                     <strong style="font-size: 12px;"><?php echo esc_html($log['user_login']); ?></strong>
                                     <div style="color: #646970; font-size: 11px;"><?php echo esc_html($log['ip_address']); ?></div>
@@ -290,7 +353,7 @@ if ($selected_blog && $selected_module) {
                                     </div>
                                     <?php if (!empty($log['context'])): ?>
                                         <details style="font-size: 11px; color: #646970; margin-top: 5px;">
-                                            <summary style="cursor: pointer; color: #2271b1;">Context data</summary>
+                                            <summary style="cursor: pointer; color: #2271b1;">▶ Context data</summary>
                                             <pre style="background: #f6f7f7; padding: 8px; margin-top: 5px; border-radius: 3px; overflow-x: auto;"><?php echo esc_html(json_encode($log['context'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)); ?></pre>
                                         </details>
                                     <?php endif; ?>
@@ -307,7 +370,7 @@ if ($selected_blog && $selected_module) {
                                         <?php endif; ?>
                                         <?php if (!empty($log['trace'])): ?>
                                             <details style="font-size: 10px; color: #646970; margin-top: 3px;">
-                                                <summary style="cursor: pointer;">Trace</summary>
+                                                <summary style="cursor: pointer;">▶ Trace</summary>
                                                 <div style="margin-top: 3px;"><?php echo esc_html($log['trace']); ?></div>
                                             </details>
                                         <?php endif; ?>

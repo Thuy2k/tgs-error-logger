@@ -25,6 +25,20 @@ require_once TGS_ERROR_LOGGER_PATH . 'includes/class-tgs-error-logger-admin.php'
 // Load helper functions
 require_once TGS_ERROR_LOGGER_PATH . 'includes/helpers.php';
 
+// Load integrations
+if (file_exists(TGS_ERROR_LOGGER_PATH . 'integrations/integration-pos.php')) {
+    require_once TGS_ERROR_LOGGER_PATH . 'integrations/integration-pos.php';
+}
+if (file_exists(TGS_ERROR_LOGGER_PATH . 'integrations/integration-shop.php')) {
+    require_once TGS_ERROR_LOGGER_PATH . 'integrations/integration-shop.php';
+}
+if (file_exists(TGS_ERROR_LOGGER_PATH . 'integrations/integration-selling-policy.php')) {
+    require_once TGS_ERROR_LOGGER_PATH . 'integrations/integration-selling-policy.php';
+}
+if (file_exists(TGS_ERROR_LOGGER_PATH . 'integrations/integration-purchase.php')) {
+    require_once TGS_ERROR_LOGGER_PATH . 'integrations/integration-purchase.php';
+}
+
 // Initialize
 add_action('plugins_loaded', function() {
     // Initialize error handler
