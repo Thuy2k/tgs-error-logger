@@ -1,0 +1,73 @@
+/* TGS Error Logger - Admin Styles */
+
+.tgs-error-logger-wrap {
+    max-width: 1400px;
+}
+
+.tgs-error-logger-filters select,
+.tgs-error-logger-filters input[type="text"] {
+    padding: 6px 10px;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.tgs-error-logger-filters select:focus,
+.tgs-error-logger-filters input[type="text"]:focus {
+    border-color: #2271b1;
+    outline: 0;
+    box-shadow: 0 0 0 1px #2271b1;
+}
+
+.tgs-error-logger-filters label {
+    font-size: 13px;
+}
+
+.tgs-error-logger-filters .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+/* Stats boxes animation */
+.tgs-error-logger-wrap > div > div {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.tgs-error-logger-wrap > div > div:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Table styles */
+.wp-list-table thead th {
+    background: #f6f7f7;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #646970;
+}
+
+.wp-list-table tbody tr {
+    transition: background-color 0.15s;
+}
+
+.wp-list-table tbody tr:hover {
+    background: #f6f7f7 !important;
+}
+
+/* Code blocks */
+code, pre {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .tgs-error-logger-filters > form > div:first-child {
+        grid-template-columns: 1fr !important;
+    }
+
+    .tgs-error-logger-wrap > div:nth-child(3) {
+        grid-template-columns: 1fr !important;
+    }
+}
