@@ -39,11 +39,11 @@ class TGS_Error_Logger_Integration_Shop
         add_action('wp_ajax_tgs_shop_product_create', [__CLASS__, 'log_before_product_create'], 1);
         add_action('wp_ajax_tgs_shop_product_update', [__CLASS__, 'log_before_product_update'], 1);
         add_action('wp_ajax_tgs_shop_product_delete', [__CLASS__, 'log_before_product_delete'], 1);
-        add_action('wp_ajax_tgs_shop_product_quick_update_price', [__CLASS__, 'log_before_quick_update_price'], 1);
-        add_action('wp_ajax_tgs_shop_product_quick_update_status', [__CLASS__, 'log_before_quick_update_status'], 1);
-        add_action('wp_ajax_tgs_shop_product_quick_update_quantity', [__CLASS__, 'log_before_quick_update_quantity'], 1);
-        add_action('wp_ajax_tgs_shop_product_bulk_update_tracking', [__CLASS__, 'log_before_bulk_update_tracking'], 1);
-        add_action('wp_ajax_tgs_shop_product_bulk_update_all_tracking', [__CLASS__, 'log_before_bulk_update_all_tracking'], 1);
+        add_action('wp_ajax_tgs_shop_product_quick_update_price', [__CLASS__, 'log_before_product_quick_update_price'], 1);
+        add_action('wp_ajax_tgs_shop_product_quick_update_status', [__CLASS__, 'log_before_product_quick_update_status'], 1);
+        add_action('wp_ajax_tgs_shop_product_quick_update_quantity', [__CLASS__, 'log_before_product_quick_update_quantity'], 1);
+        add_action('wp_ajax_tgs_shop_product_bulk_update_tracking', [__CLASS__, 'log_before_product_bulk_update_tracking'], 1);
+        add_action('wp_ajax_tgs_shop_product_bulk_update_all_tracking', [__CLASS__, 'log_before_product_bulk_update_all_tracking'], 1);
 
         // ============ CATEGORY OPERATIONS ============
         add_action('wp_ajax_tgs_category_save', [__CLASS__, 'log_before_category_save'], 1);
@@ -63,7 +63,7 @@ class TGS_Error_Logger_Integration_Shop
         // ============ INVENTORY OPERATIONS ============
         add_action('wp_ajax_tgs_inventory_manual_save', [__CLASS__, 'log_before_inventory_save'], 1);
         add_action('wp_ajax_tgs_adjustment_save', [__CLASS__, 'log_before_adjustment_save'], 1);
-        add_action('wp_ajax_tgs_shop_inventory_update_lots_exp', [__CLASS__, 'log_before_update_lots_expiry'], 1);
+        add_action('wp_ajax_tgs_shop_inventory_update_lots_exp', [__CLASS__, 'log_before_inventory_update_lots_exp'], 1);
 
         // ============ SYNC OPERATIONS ============
         add_action('wp_ajax_tgs_shop_sync_products', [__CLASS__, 'log_before_sync_products'], 1);
@@ -111,7 +111,7 @@ class TGS_Error_Logger_Integration_Shop
 
         // ============ SETTINGS OPERATIONS ============
         add_action('wp_ajax_tgs_shop_save_print_settings', [__CLASS__, 'log_before_save_print_settings'], 1);
-        add_action('wp_ajax_tgs_shop_save_label_print_settings', [__CLASS__, 'log_before_save_label_settings'], 1);
+        add_action('wp_ajax_tgs_shop_save_label_print_settings', [__CLASS__, 'log_before_save_label_print_settings'], 1);
         add_action('wp_ajax_tgs_save_brand_settings', [__CLASS__, 'log_before_save_brand_settings'], 1);
 
         // ============ MILK UNDER 24M OPERATIONS ============
@@ -311,9 +311,9 @@ class TGS_Error_Logger_Integration_Shop
     }
 
     /**
-     * Log before quick update price
+     * Log before product quick update price
      */
-    public static function log_before_quick_update_price()
+    public static function log_before_product_quick_update_price()
     {
         try {
             tgs_log_info('shop', 'Product quick price update started', [
@@ -327,9 +327,9 @@ class TGS_Error_Logger_Integration_Shop
     }
 
     /**
-     * Log before quick update status
+     * Log before product quick update status
      */
-    public static function log_before_quick_update_status()
+    public static function log_before_product_quick_update_status()
     {
         try {
             tgs_log_info('shop', 'Product quick status update started', [
@@ -343,9 +343,9 @@ class TGS_Error_Logger_Integration_Shop
     }
 
     /**
-     * Log before quick update quantity
+     * Log before product quick update quantity
      */
-    public static function log_before_quick_update_quantity()
+    public static function log_before_product_quick_update_quantity()
     {
         try {
             tgs_log_info('shop', 'Product quick quantity update started', [
@@ -359,9 +359,9 @@ class TGS_Error_Logger_Integration_Shop
     }
 
     /**
-     * Log before bulk update tracking
+     * Log before product bulk update tracking
      */
-    public static function log_before_bulk_update_tracking()
+    public static function log_before_product_bulk_update_tracking()
     {
         try {
             $product_ids = isset($_POST['product_ids']) ? json_decode(stripslashes($_POST['product_ids']), true) : [];
@@ -377,9 +377,9 @@ class TGS_Error_Logger_Integration_Shop
     }
 
     /**
-     * Log before bulk update all tracking
+     * Log before product bulk update all tracking
      */
-    public static function log_before_bulk_update_all_tracking()
+    public static function log_before_product_bulk_update_all_tracking()
     {
         try {
             tgs_log_warning('shop', 'Bulk update ALL products tracking started', [
@@ -499,9 +499,9 @@ class TGS_Error_Logger_Integration_Shop
     }
 
     /**
-     * Log before update lots expiry
+     * Log before inventory update lots expiry
      */
-    public static function log_before_update_lots_expiry()
+    public static function log_before_inventory_update_lots_exp()
     {
         try {
             tgs_log_info('shop', 'Inventory lots expiry update started', [
@@ -958,9 +958,9 @@ class TGS_Error_Logger_Integration_Shop
     }
 
     /**
-     * Log before save label settings
+     * Log before save label print settings
      */
-    public static function log_before_save_label_settings()
+    public static function log_before_save_label_print_settings()
     {
         try {
             tgs_log_info('shop', 'Label print settings save started', [
