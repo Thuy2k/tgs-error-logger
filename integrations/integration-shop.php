@@ -275,25 +275,6 @@ class TGS_Error_Logger_Integration_Shop
     }
 
     /**
-     * Log before product save
-     */
-    public static function log_before_product_save()
-    {
-        try {
-            $product_id = intval($_POST['product_id'] ?? 0);
-            $action = $product_id > 0 ? 'update' : 'create';
-
-            tgs_log_info('shop', "Product {$action} started", [
-                'product_id' => $product_id,
-                'product_sku' => sanitize_text_field($_POST['product_sku'] ?? ''),
-                'user_id' => get_current_user_id(),
-            ]);
-        } catch (Exception $e) {
-            // Silent
-        }
-    }
-
-    /**
      * Log before product delete
      */
     public static function log_before_product_delete()
@@ -1169,23 +1150,6 @@ class TGS_Error_Logger_Integration_Shop
     {
         try {
             tgs_log_info('shop', 'Category sync started', [
-                'user_id' => get_current_user_id(),
-            ]);
-        } catch (Exception $e) {
-            // Silent
-        }
-    }
-
-    /**
-     * Log before import
-     */
-    public static function log_before_import()
-    {
-        try {
-            $action = current_action();
-
-            tgs_log_info('shop', 'Excel import started', [
-                'action' => $action,
                 'user_id' => get_current_user_id(),
             ]);
         } catch (Exception $e) {
